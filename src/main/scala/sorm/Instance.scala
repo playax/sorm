@@ -131,6 +131,19 @@ object Instance {
         }
 
     /**
+     * Save the entity without returning keys. An Abstraction over INSERT and UPDATE-queries. Which one to perform will be decided based on whether the [[sorm.Persisted]] trait is mixed in the value you provide.
+     * @param value The value to save
+     * @return The object saved entity instance with a [[sorm.Persisted]] trait mixed in
+     */
+    def saveWithoutId
+      [ T <: AnyRef : TypeTag ]
+      ( value : T )
+      : T
+      = connector.withConnection{ cx =>
+        mapping[T].saveWithoutId(value, cx).asInstanceOf[T]
+      }
+
+    /**
      * Saves the entity by overwriting the existing one if one with the matching unique keys exists and creating a new one otherwise. Executing simply [[sorm.Instance.Api#save]] in a situation of unique keys clash would have thrown an exception. Beware that in case when not all unique keys are matched this method will still throw an exception.
      * @param value The value to save
      * @return The saved entity instance with a [[sorm.Persisted]] trait mixed in

@@ -69,6 +69,17 @@ class EntityMapping
       }
     }
 
+  def saveWithoutId ( value : Any, connection : DriverConnection ) : Any = {
+    value match {
+      case value : Persisted => save(value, connection)
+      case _ =>
+        val propertyValues = properties.map{ case (n, m) => (n, m, reflection.propertyValue(n, value.asInstanceOf[AnyRef])) }.toStream
+        val rowValues = propertyValues.flatMap{ case (n, m, v) => m.valuesForContainerTableRow(v) }
+        connection.insert(tableName, rowValues)
+        value
+    }
+  }
+
   override lazy val uniqueKeysColumnNames
     = settings get reflection map (_.uniqueKeys) getOrElse Set() map (_ map properties flatMap (_.columnsForContainer.map(_.name))) filter (_.nonEmpty)
 
